@@ -108,7 +108,7 @@ export const getConfig = async (
     const value = cliConfig?.[key] ?? config[key];
     parsedConfig[key] = parser(value);
   }
-
+  console.log('getConfig');
   return parsedConfig as ValidConfig;
 };
 

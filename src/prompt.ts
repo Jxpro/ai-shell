@@ -13,6 +13,7 @@ import clipboardy from 'clipboardy';
 import i18n from './helpers/i18n';
 
 const init = async () => {
+  console.log('init')
   try {
     const { LANGUAGE: language } = await getConfig();
     i18n.setLanguage(language);
@@ -95,12 +96,14 @@ export async function prompt({
   usePrompt,
   silentMode,
 }: { usePrompt?: string; silentMode?: boolean } = {}) {
+  console.log('prompt start');
   const {
     OPENAI_KEY: key,
     SILENT_MODE,
     OPENAI_API_ENDPOINT: apiEndpoint,
     MODEL: model,
   } = await getConfig();
+  console.log('prompt end');
   const skipCommandExplanation = silentMode || SILENT_MODE;
 
   console.log('');
