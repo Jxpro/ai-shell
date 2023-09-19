@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import os from 'os';
 import ini from 'ini';
@@ -27,20 +28,20 @@ const parseAssert = (name: string, condition: any, message: string) => {
 };
 
 const configParsers = {
-  OPENAI_KEY(key?: string) {
-    if (!key) {
+  OPENAI_KEY(keyString?: string) {
+    if (!keyString) {
       throw new KnownError(
         `Please set your OpenAI API key via \`${commandName} config set OPENAI_KEY=<your token>\`` // TODO: i18n
       );
     }
-
-    return key;
+    const keys = keyString.split(';');
+    const idx = getIncrement() % keys.length;
+    return keys[idx].trim();
   },
   MODEL(model?: string) {
     if (!model || model.length === 0) {
       return 'gpt-3.5-turbo';
     }
-
     return model as TiktokenModel;
   },
   SILENT_MODE(mode?: string) {
@@ -64,7 +65,21 @@ type ValidConfig = {
   [Key in ConfigKeys]: ReturnType<(typeof configParsers)[Key]>;
 };
 
-const configPath = path.join(os.homedir(), '.ai-shell');
+const configPath = path.join(os.homedir(), '.config', 'ai-shell', 'config');
+const numPath = path.join(os.homedir(), '.config', 'ai-shell', 'increment');
+
+const getIncrement = () => {
+  const incrementExists = fileExists(numPath);
+  if (!incrementExists) {
+    writeFileSync(numPath, '0', 'utf8');
+    return 0;
+  }
+
+  const increment = readFileSync(numPath, 'utf8');
+  writeFileSync(numPath, (parseInt(increment) + 1).toString(), 'utf8');
+
+  return parseInt(increment);
+};
 
 const fileExists = (filePath: string) =>
   fs.lstat(filePath).then(
